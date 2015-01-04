@@ -8,6 +8,12 @@ This is a template used for new Ruby on Rails application in [Perfectionist][htt
 rails new [app_name] -m https://raw.github.com/chukcha-wtf/perfectionist_template/master/template.rb
 ```
 
+or as we're not using test_unit and sqlite
+
+```bash
+rails new [app_name] -T -d=postgresql -m https://raw.github.com/chukcha-wtf/perfectionist_template/master/template.rb
+```
+
 ## What it does
 
 1. Adds the following gems:
@@ -24,3 +30,6 @@ rails new [app_name] -m https://raw.github.com/chukcha-wtf/perfectionist_templat
 3. Initializes a new git repository with an initial commit.
 
 4. Optionally create a github repository.
+
+## TODO
+- Add robots.txt recipe
