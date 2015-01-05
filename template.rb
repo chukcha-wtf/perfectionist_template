@@ -1,6 +1,13 @@
 # Methods
 # ==================================================
 
+# write_to_file helper
+def write_to_file(filename, &block)
+  run "cat << EOF >> #{filename}
+#{block.call}
+"
+end
+
 # Creating README.md instead of README.rdoc
 def rename_readme
   run "rm README.rdoc"
@@ -12,16 +19,18 @@ def create_database
   rake "db:create"
 end
 
-# 
+# Default root route for app
 def generate_basic_controller
   generate :controller, "Pages", "index"
   route "root 'pages#index'"
 end
 
+# Pagination gem
 def add_kaminari
   gem "kaminari"
 end
 
+# Redactor.js wysiwyg text editor
 def add_redactor
   if yes? "Add redactor-rails?"
     gem 'redactor-rails', github: 'chukcha-wtf/redactor-rails'
@@ -38,39 +47,43 @@ end
 
 # Authentication solution for Rails
 def add_devise
-  gem "devise"
-  generate "devise:install"
-  model_name = ask "What model name you will be using with Devise?"
-  model_name ||= "user"
-  generate :devise, "#{model_name.capitalize}"
+  if yes? "Add Devise?"
+    gem "devise"
+    generate "devise:install"
+    model_name = ask "What model name you will be using with Devise?"
+    model_name ||= "user"
+    generate :devise, "#{model_name.capitalize}"
 
-  if yes? "Add role based authorization?"
-    setup_cancan
+    if yes? "Add role based authorization?"
+      setup_cancan
+    end
   end
 end
 
+# Role based authorization
 def setup_cancan
   gem "cancancan"
   generate "cancan:ability"
 end
 
+# Adding AdminLTE template
 def add_adminlte
   if yes? "Add adminlte?"
-    where_to = ask "For which layout? (default application)"
+    where_to = ask "For which layout? (default 'application')"
     where_to ||= "application"
 
     gem 'jquery-ui-rails'
     gem "adminlte"
 
-    file "#{where_to}.js", <<-STRING
-    //= require jquery-ui/core
-    //= require adminlte/bootstrap
-    //= require adminlte/app
-    STRING
+    write_to_file "app/assets/javascripts/#{where_to}.js" do
+      "//= require jquery-ui/core\n" +
+      "//= require adminlte/bootstrap\n" +
+      "//= require adminlte/app"
+    end
 
-    file "#{where_to}.css", <<-STRING
-    *= require AdminLTE
-    STRING
+    write_to_file "app/assets/stylesheets/#{where_to}.css" do
+      " *= require AdminLTE"
+    end
   end
 end
 
@@ -93,6 +106,7 @@ def config_action_mailer(env)
   end
 end
 
+# Creating admin section
 def create_admin_section
   if yes? "Create admin section?"
     section_name = ask "How would you call it?"
@@ -118,14 +132,15 @@ def create_admin_section
     generate :controller, "#{section_name}/pages", "index"
 
     route <<-STRING
-    namespace :admin do
-      root => 'pages#index'
-    end
-    STRING
+  namespace :#{section_name} do
+    root => 'pages#index'
+  end
+  STRING
 
   end
 end
 
+# Setting up default timezone and language
 def setup_timezone_and_language
   if yes? "Setup timezone and language?"
     default_timezone = ask "Default timezone"
@@ -134,10 +149,11 @@ def setup_timezone_and_language
 
     default_locale = ask "Default locale"
     default_locale ||= :en
-    application "config..i18n.default_locale = #{default_locale.to_sym}"
+    application "config.i18n.default_locale = #{default_locale.to_sym}"
   end
 end
 
+# Adding locale files
 def add_locales
   if yes? "Would you use ukrainian or russian language in app?"
     lang = ask "Which one will you use 'uk' or 'ru'? (empty for both)"
@@ -158,6 +174,7 @@ def add_locales
   end
 end
 
+# Document/Image uploader gem
 def add_carrierwave
   if yes? "Add image/document uploader?"
     gem 'carrierwave'
@@ -165,6 +182,7 @@ def add_carrierwave
   end
 end
 
+# Gem groups for better development process
 def add_gem_groups
   gem 'exception_notification'
 
@@ -179,7 +197,6 @@ def add_gem_groups
     gem "rspec-rails"
     # Capybara for integration testing (https://github.com/jnicklas/capybara)
     gem "capybara"
-    gem "capybara-webkit"
     gem "launchy"
     # FactoryGirl instead of Rails fixtures (https://github.com/thoughtbot/factory_girl)
     gem "factory_girl_rails"
@@ -206,6 +223,7 @@ def add_gem_groups
   run "bundle exec cap install"
 end
 
+# Supporting usefull gems
 def add_supporting_gems
   gem 'auto_html'
   gem 'acts_as_list'
@@ -215,23 +233,18 @@ end
 
 def update_gitignore
   run "cat << EOF >> .gitignore
-  /.bundle
-  /db/*.sqlite3
-  /db/*.sqlite3-journal
-  /log/*.log
-  /tmp
-  database.yml
-  secrets.yml
-  doc/
-  *.swp
-  *~
-  .project
-  .idea
-  .secret
-  .DS_Store
-  /public/system
-  /public/uploads
-  " 
+database.yml
+secrets.yml
+doc/
+*.swp
+*~
+.project
+.idea
+.secret
+.DS_Store
+/public/system
+/public/uploads
+" 
 end
 
 def commit_changes
