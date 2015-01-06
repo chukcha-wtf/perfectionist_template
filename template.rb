@@ -74,16 +74,9 @@ def add_adminlte
 
     gem 'jquery-ui-rails'
     gem "adminlte"
+    gem "adminlte-generators"
 
-    write_to_file "app/assets/javascripts/#{where_to}.js" do
-      "//= require jquery-ui/core\n" +
-      "//= require adminlte/bootstrap\n" +
-      "//= require adminlte/app"
-    end
-
-    write_to_file "app/assets/stylesheets/#{where_to}.css" do
-      " *= require AdminLTE"
-    end
+    generate "adminlte:install --skin=black --layout_name=#{where_to}"
   end
 end
 
