@@ -126,7 +126,7 @@ def create_admin_section
 
     route <<-STRING
   namespace :#{section_name} do
-    root => 'pages#index'
+    root 'pages#index'
   end
   STRING
 
